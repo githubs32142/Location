@@ -8,13 +8,20 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.location.LocationProvider;
+import android.os.AsyncTask;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.TextView;
 
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.w3c.dom.Text;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity  {
     TextView width, height, provider;
@@ -43,6 +50,14 @@ public class MainActivity extends AppCompatActivity  {
             @Override
             public void onLocationChanged(Location location) {
                 provider.setText("lattitude "+location.getLatitude()+" Longlitude "+location.getLongitude());
+                width.setText(String.valueOf(location.getLatitude()));
+                height.setText(String.valueOf(location.getLongitude()));
+                List<String> list = new ArrayList<>();
+                list.add(width.getText().toString());
+                list.add(height.getText().toString());
+                String url ="http://api.openweathermap.org/data/2.5/weather?lat="+width.getText().toString()+"&lon="+height.getText()+"&APPID=b6d39c6ba02087c6bf2352ef6e2c8316";
+                Log.d("a",url );
+                new Request().execute(list);
             }
 
             @Override
@@ -63,5 +78,30 @@ public class MainActivity extends AppCompatActivity  {
         lm.requestLocationUpdates(locationProvider.getName(), 0, 0, ll);
     }
 
+    private class Request extends AsyncTask<List<String>,Void,String> {
+        JSONObject stream = null;
+        String preasure;
 
+        @Override
+        protected String doInBackground(List<String>list[]) {
+            String url ="http://api.openweathermap.org/data/2.5/weather?lat="+width.getText().toString()+"&lon="+height.getText()+"&APPID=b6d39c6ba02087c6bf2352ef6e2c8316";
+            System.out.println(url);
+            HttpGetData httpDataHelper= new HttpGetData();
+            stream= httpDataHelper.getHttpData(url);
+            Log.d("A",stream.toString());
+            try {
+                preasure=stream.getString("pressure");
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            Log.d("A",stream.toString());
+            return  stream.toString();
+        }
+
+        @Override
+        protected void onPostExecute(String s) {
+           //String
+        }
+    }
 }
+
